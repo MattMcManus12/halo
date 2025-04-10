@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  name          String?
+  image         String?
+  diagnosis     String?
+  diagnosisYear Int?
+  ageGroup      String?
+  city          String?
+  state         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isAnonymous   Boolean   @default(false)
+  preferences   Json?
+  
+  // Relations
+  savedOrgs     SavedOrganization[]
+  moodEntries   MoodEntry[]
+  connections   Connection[]         @relation("UserConnections")
+  connectedTo   Connection[]         @relation("ConnectedToUser")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  website     String?
+  type        String[] // e.g., ["nonprofit", "support_group", "hospital"]
+  location    Json?    // {lat: number, lng: number, address: string}
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  savedBy     SavedOrganization[]
+  resources   Resource[]
+  events      Event[]
+}
+
+model SavedOrganization {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Resource {
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  type           String       // e.g., "financial_aid", "clinical_trial", "support_group"
+  url            String?
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Event {
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  type           String       // e.g., "support_group", "webinar", "walk"
+  startDate      DateTime
+  endDate        DateTime?
+  location       Json?        // {lat: number, lng: number, address: string, isVirtual: boolean}
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model MoodEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  mood      String   // e.g., "happy", "anxious", "grateful"
+  note      String?
+  isPrivate Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Connection {
+  id          String   @id @default(cuid())
+  userId      String
+  connectedTo String
+  status      String   // "pending", "accepted", "rejected"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation("UserConnections", fields: [userId], references: [id])
+  connected   User     @relation("ConnectedToUser", fields: [connectedTo], references: [id])
+
+  @@unique([userId, connectedTo])
+} 
