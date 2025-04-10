@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 const focusOptions = [
   {
@@ -28,6 +29,14 @@ const focusOptions = [
 ];
 
 export default function FocusPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FocusContent />
+    </Suspense>
+  );
+}
+
+function FocusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const focus = searchParams.get('focus');
