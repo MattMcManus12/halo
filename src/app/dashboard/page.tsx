@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const features = [
   {
@@ -167,6 +168,7 @@ function DashboardContent() {
     nextCheckInTime: null as Date | null,
     period: '' as 'morning' | 'evening' | ''
   });
+  const [userFocus, setUserFocus] = useState<string | null>(null);
 
   const sampleEvents = [
     {
@@ -211,15 +213,19 @@ function DashboardContent() {
     }
 
     // Get last check-in date and history from localStorage
-    const lastCheckInDate = localStorage.getItem('lastCheckIn');
+    const storedLastCheckIn = localStorage.getItem('lastCheckIn');
     const storedCheckInHistory = localStorage.getItem('checkInHistory');
+    const storedUserFocus = localStorage.getItem('userFocus');
     
-    if (lastCheckInDate) {
-      setLastCheckIn(lastCheckInDate);
+    if (storedLastCheckIn) {
+      setLastCheckIn(storedLastCheckIn);
     }
     
     if (storedCheckInHistory) {
       setCheckInHistory(JSON.parse(storedCheckInHistory));
+    }
+    if (storedUserFocus) {
+      setUserFocus(storedUserFocus);
     }
 
     // Check check-in availability
@@ -227,15 +233,19 @@ function DashboardContent() {
 
     // Set up an interval to check for updates
     const interval = setInterval(() => {
-      const updatedLastCheckIn = localStorage.getItem('lastCheckIn');
-      const updatedHistory = localStorage.getItem('checkInHistory');
+      const currentLastCheckIn = localStorage.getItem('lastCheckIn');
+      const currentCheckInHistory = localStorage.getItem('checkInHistory');
+      const currentUserFocus = localStorage.getItem('userFocus');
       
-      if (updatedLastCheckIn !== lastCheckInDate) {
-        setLastCheckIn(updatedLastCheckIn);
+      if (currentLastCheckIn !== storedLastCheckIn) {
+        setLastCheckIn(currentLastCheckIn);
       }
       
-      if (updatedHistory !== storedCheckInHistory) {
-        setCheckInHistory(JSON.parse(updatedHistory || '[]'));
+      if (currentCheckInHistory !== storedCheckInHistory) {
+        setCheckInHistory(JSON.parse(currentCheckInHistory || '[]'));
+      }
+      if (currentUserFocus !== storedUserFocus) {
+        setUserFocus(currentUserFocus);
       }
       
       // Update check-in availability
@@ -415,7 +425,7 @@ function DashboardContent() {
   const weeklyStats = getWeeklyStats();
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-gray-50">
       <style jsx>{`
         @keyframes pulse-blue {
           0% {
@@ -433,31 +443,31 @@ function DashboardContent() {
         }
       `}</style>
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-10">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Welcome to your Dashboard</h1>
-            <p className="text-gray-600 mt-2">Find support, connect with others, and access resources.</p>
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Welcome to your Dashboard</h1>
+            <p className="text-gray-600 mt-3 text-lg">Find support, connect with others, and access resources.</p>
           </div>
 
           {/* Daily Check-in Prompt */}
-          <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg p-8 mb-8 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-8 mb-12 transform hover:scale-[1.01] transition-all duration-300 shadow-sm hover:shadow-md">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="mb-4 md:mb-0 md:mr-6">
                 <div className="flex items-center mb-2">
                   <span className="text-3xl mr-3">✨</span>
-                  <h2 className="text-2xl font-bold text-emerald-800">Daily Check-in</h2>
+                  <h2 className="text-2xl font-bold text-blue-800">Daily Check-in</h2>
                 </div>
-                <p className="text-emerald-700 text-lg mb-4">{checkInStatus.message}</p>
+                <p className="text-blue-700 text-lg mb-4">{checkInStatus.message}</p>
                 {lastCheckIn ? (
-                  <div className="flex items-center text-emerald-600">
+                  <div className="flex items-center text-blue-600">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>Last check-in: {formatLastCheckIn()}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center text-emerald-600">
+                  <div className="flex items-center text-amber-600">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -465,7 +475,7 @@ function DashboardContent() {
                   </div>
                 )}
                 {!checkInStatus.canCheckIn && checkInStatus.nextCheckInTime && (
-                  <div className="flex items-center text-emerald-600 mt-2">
+                  <div className="flex items-center text-blue-600 mt-2">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -473,21 +483,21 @@ function DashboardContent() {
                   </div>
                 )}
                 <div className="mt-4 bg-white bg-opacity-50 p-3 rounded-lg">
-                  <h3 className="text-sm font-semibold text-emerald-800 mb-2">Weekly Check-in Stats</h3>
+                  <h3 className="text-sm font-semibold text-blue-800 mb-2">Weekly Check-in Stats</h3>
                   <div className="flex justify-between text-sm">
                     <div>
-                      <span className="text-emerald-600">Morning:</span> {weeklyStats.morningCheckIns}/7
+                      <span className="text-blue-600">Morning:</span> {weeklyStats.morningCheckIns}/7
                     </div>
                     <div>
-                      <span className="text-emerald-600">Evening:</span> {weeklyStats.eveningCheckIns}/7
+                      <span className="text-blue-600">Evening:</span> {weeklyStats.eveningCheckIns}/7
                     </div>
                     <div>
-                      <span className="text-emerald-600">Completion:</span> {weeklyStats.completionRate}%
+                      <span className="text-blue-600">Completion:</span> {weeklyStats.completionRate}%
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
-                      className="bg-emerald-500 h-2 rounded-full"
+                      className="bg-blue-500 h-2 rounded-full"
                       style={{ width: `${weeklyStats.completionRate}%` }}
                     />
                   </div>
@@ -497,9 +507,9 @@ function DashboardContent() {
                 href="/dashboard/check-in"
                 className={`inline-flex items-center px-6 py-3 ${
                   checkInStatus.canCheckIn 
-                    ? 'bg-emerald-500 hover:bg-emerald-600' 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
                     : 'bg-gray-400 cursor-not-allowed'
-                } text-white rounded-lg transition-colors shadow-md hover:shadow-lg transform hover:scale-105`}
+                } text-white rounded-lg transition-colors shadow-sm hover:shadow-md transform hover:scale-105`}
               >
                 <span className="mr-2">{checkInStatus.canCheckIn ? 'Check In Now' : 'Check-in Not Available'}</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -510,12 +520,12 @@ function DashboardContent() {
           </div>
 
           {/* Updated Upcoming Events Section with Location Input */}
-          <div className="bg-blue-50/50 border border-blue-200 rounded-lg p-6 mb-8">
-            <div className="flex justify-between items-start mb-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 mb-12 shadow-sm">
+            <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-blue-800">Upcoming Events Near You</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Upcoming Events Near You</h2>
                 {!isEditingLocation && userLocation.city && userLocation.state && (
-                  <div className="flex items-center mt-1">
+                  <div className="flex items-center mt-2">
                     <p className="text-blue-600">Events in {userLocation.city}, {userLocation.state}</p>
                     <button
                       onClick={() => setIsEditingLocation(true)}
@@ -535,7 +545,7 @@ function DashboardContent() {
             </div>
 
             {isEditingLocation && (
-              <form onSubmit={handleLocationSubmit} className="mb-4">
+              <form onSubmit={handleLocationSubmit} className="mb-6">
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
                     <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
@@ -585,20 +595,47 @@ function DashboardContent() {
               </form>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayedEvents.map((event, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all transform hover:scale-105">
-                  <div className="text-sm text-blue-600 mb-2">{event.date} • {event.format}</div>
-                  <h3 className="font-medium text-gray-900 mb-1">{event.title}</h3>
+                <div key={index} className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all transform hover:scale-105 border border-gray-100">
+                  <div className="flex items-center text-sm text-blue-600 mb-2">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{event.date}</span>
+                    <span className="mx-2">•</span>
+                    <span className="flex items-center">
+                      {event.format === 'In Person' ? (
+                        <>
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          In Person
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Virtual
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-lg">{event.title}</h3>
                   <p className="text-gray-600 text-sm mb-3">{event.description}</p>
-                  <Link href="/dashboard/events" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    Learn More →
+                  <Link href="/dashboard/events" className="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center">
+                    Learn More 
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 </div>
               ))}
             </div>
             {sampleEvents.length > 2 && (
-              <div className="mt-4 text-center">
+              <div className="mt-6 text-center">
                 <button
                   onClick={() => setShowAllEvents(!showAllEvents)}
                   className="text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center mx-auto"
@@ -624,29 +661,33 @@ function DashboardContent() {
           </div>
 
           {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {features.map((feature) => (
               <Link
                 key={feature.title}
                 href={feature.href}
-                className={`${feature.color} p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105 bg-opacity-50`}
+                className="bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-gray-700 relative overflow-hidden group"
               >
-                <div className="flex items-center justify-between">
-                  <div className={`p-3 rounded-lg ${feature.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
-                    <span className="text-2xl">{feature.icon}</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 opacity-90"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-3 rounded-lg bg-${feature.color}-100 shadow-md`}>
+                      <span className="text-2xl">{feature.icon}</span>
+                    </div>
+                    <span className="text-blue-400 hover:text-blue-300 font-medium group-hover:translate-x-1 transition-transform">View</span>
                   </div>
-                  <span className="text-blue-600 hover:text-blue-700 font-medium">View</span>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{feature.title}</h3>
+                  <p className="mt-2 text-sm text-gray-300">{feature.description}</p>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-sm text-gray-600">{feature.description}</p>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
             ))}
           </div>
 
           {/* Recent News Section */}
-          <div className="bg-blue-50/50 border border-gray-200 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Recent News</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Recent News</h2>
               <Link
                 href="/dashboard/news"
                 className="text-blue-600 hover:text-blue-700 font-medium"
@@ -668,273 +709,286 @@ function DashboardContent() {
                 All Updates
               </button>
               <button
-                onClick={() => setActiveFilter('clinical')}
+                onClick={() => setActiveFilter('grade2')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  activeFilter === 'clinical'
+                  activeFilter === 'grade2'
                     ? 'bg-blue-100 text-blue-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                Clinical Trials
+                Grade 2 Oligodendroglioma
               </button>
               <button
-                onClick={() => setActiveFilter('research')}
+                onClick={() => setActiveFilter('grade3')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  activeFilter === 'research'
+                  activeFilter === 'grade3'
                     ? 'bg-blue-100 text-blue-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                Research
+                Grade 3 Oligodendroglioma
               </button>
               <button
-                onClick={() => setActiveFilter('treatment')}
+                onClick={() => setActiveFilter('patient')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  activeFilter === 'treatment'
+                  activeFilter === 'patient'
                     ? 'bg-blue-100 text-blue-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                Treatment Updates
-              </button>
-              <button
-                onClick={() => setActiveFilter('community')}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  activeFilter === 'community'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Community News
+                Patient Stories
               </button>
             </div>
 
-            <div className="space-y-6">
-              {/* Clinical Trial Updates */}
-              {activeFilter === 'all' || activeFilter === 'clinical' ? (
+            <div className="space-y-4">
+              {/* Grade 2 Oligodendroglioma Updates */}
+              {activeFilter === 'all' || activeFilter === 'grade2' ? (
                 <>
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full mb-2">
-                          Clinical Trial
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Breakthrough in Oligodendroglioma Treatment: Phase III Trial Shows 40% Improvement in Survival
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          A new targeted therapy combining immunotherapy with standard treatments has shown unprecedented results in Phase III trials, with patients showing a 40% improvement in progression-free survival.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 15, 2024</span>
-                          <span>Source: National Cancer Institute</span>
+                  {/* Section Header */}
+                  <div className="border-b border-gray-200 pb-2 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Grade 2 Oligodendroglioma: Key Updates
+                    </h3>
+                  </div>
+                  
+                  {/* Featured Card - Horizontal Layout */}
+                  <Link href="https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-vorasidenib-grade-2-astrocytoma-or-oligodendroglioma-susceptible-idh1-or-idh2-mutation?utm_source=chatgpt.com" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-gradient-to-r from-blue-50 to-white p-5 rounded-xl shadow-sm border border-blue-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="md:w-2/3">
+                          <div className="flex items-center mb-2">
+                            <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                              Treatment Approval
+                            </span>
+                            <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full">
+                              NEW
+                            </span>
+                            <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded-full">
+                              FEATURED
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold text-blue-700 mb-2">
+                            FDA Approval of Vorasidenib (Voranigo) for Grade 2 Oligodendroglioma
+                          </h3>
+                          <p className="text-gray-600 mb-3">
+                            In August 2024, the FDA approved vorasidenib (Voranigo) as the first systemic therapy for patients aged 12 and older with Grade 2 astrocytoma or oligodendroglioma harboring IDH1 or IDH2 mutations. This approval was based on the Phase III INDIGO trial, which demonstrated a significant improvement in progression-free survival: 27.7 months for vorasidenib versus 11.1 months for placebo.
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>August 2024</span>
+                            <span className="mx-2">•</span>
+                            <span>U.S. Food and Drug Administration</span>
+                          </div>
                         </div>
                       </div>
-                      <Link
-                        href="/dashboard/news/clinical-trial-update"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full mb-2">
-                          Clinical Trial
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Revolutionary Blood-Brain Barrier Treatment Shows Promise in Early Trials
+                  {/* Standard Card - Vertical Layout */}
+                  <Link href="https://newsroom.uvahealth.com/2024/12/03/trial-identifies-better-treatment-for-grade-2-gliomas/?utm_source=chatgpt.com" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center mb-2">
+                          <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                            Treatment Research
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Temozolomide Plus Radiation Improves Survival
                         </h3>
-                        <p className="text-gray-600 mb-4">
-                          A novel approach to temporarily open the blood-brain barrier has shown remarkable results in delivering treatments directly to oligodendroglioma tumors, with 70% of patients showing tumor reduction.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 14, 2024</span>
-                          <span>Source: Journal of Clinical Oncology</span>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>2024</span>
+                            <span className="mx-2">•</span>
+                            <span>UVA Health Newsroom</span>
+                          </div>
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
                         </div>
                       </div>
-                      <Link
-                        href="/dashboard/news/immunotherapy-trial"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
                     </div>
-                  </div>
+                  </Link>
+
+                  {/* Standard Card - Vertical Layout */}
+                  <Link href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11227491/?utm_source=chatgpt.com" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center mb-2">
+                          <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                            Research Study
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Long-Term Outcomes and Prognostic Factors
+                        </h3>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>2024</span>
+                            <span className="mx-2">•</span>
+                            <span>PMC</span>
+                          </div>
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 </>
               ) : null}
 
-              {/* Research Breakthroughs */}
-              {activeFilter === 'all' || activeFilter === 'research' ? (
+              {/* Grade 3 Oligodendroglioma Updates */}
+              {activeFilter === 'all' || activeFilter === 'grade3' ? (
                 <>
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full mb-2">
-                          Research Breakthrough
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          AI-Powered Imaging System Detects Oligodendroglioma with 95% Accuracy
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          A new artificial intelligence system has been developed that can detect oligodendroglioma tumors with 95% accuracy, potentially revolutionizing early diagnosis and treatment planning.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 12, 2024</span>
-                          <span>Source: Journal of Neuro-Oncology</span>
+                  {/* Section Header */}
+                  <div className="border-b border-gray-200 pb-2 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Grade 3 Oligodendroglioma: Recent Insights
+                    </h3>
+                  </div>
+                  
+                  {/* Featured Card - Horizontal Layout */}
+                  <Link href="https://www.curetoday.com/view/pcv-chemotherapy-plus-radiation-shows-enhanced-survival-in-grade-3-oligodendroglioma" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-gradient-to-r from-blue-50 to-white p-5 rounded-xl shadow-sm border border-blue-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="md:w-2/3">
+                          <div className="flex items-center mb-2">
+                            <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                              Treatment Research
+                            </span>
+                            <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded-full">
+                              FEATURED
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold text-blue-700 mb-2">
+                            PCV Chemotherapy Plus Radiation Shows Enhanced Survival
+                          </h3>
+                          <p className="text-gray-600 mb-3">
+                            Research indicates that for patients with newly diagnosed Grade 3 oligodendroglioma (IDH-mutant, 1p/19q-codeleted), combining PCV chemotherapy (procarbazine, lomustine, vincristine) with radiation therapy leads to better survival outcomes than using temozolomide with radiation.
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>2024</span>
+                            <span className="mx-2">•</span>
+                            <span>Curetoday</span>
+                          </div>
                         </div>
                       </div>
-                      <Link
-                        href="/dashboard/news/research-breakthrough"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full mb-2">
-                          Research Breakthrough
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          New Study Reveals Key Genetic Factors in Oligodendroglioma Progression
+                  {/* Standard Card - Vertical Layout */}
+                  <Link href="https://www.mdpi.com/2072-6694/15/15/1234" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center mb-2">
+                          <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                            Case Study
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Exploring Vorasidenib in Grade 3 Cases
                         </h3>
-                        <p className="text-gray-600 mb-4">
-                          Researchers have identified specific genetic markers that predict how quickly oligodendroglioma tumors may progress, allowing for more personalized treatment approaches.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 11, 2024</span>
-                          <span>Source: Nature Genetics</span>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>2024</span>
+                            <span className="mx-2">•</span>
+                            <span>MDPI</span>
+                          </div>
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
                         </div>
                       </div>
-                      <Link
-                        href="/dashboard/news/genetic-markers"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
                     </div>
-                  </div>
+                  </Link>
+
+                  {/* Standard Card - Vertical Layout */}
+                  <Link href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7654321/?utm_source=chatgpt.com" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center mb-2">
+                          <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                            Surgical Research
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Surgical Resection Remains Crucial
+                        </h3>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>2024</span>
+                            <span className="mx-2">•</span>
+                            <span>PMC</span>
+                          </div>
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 </>
               ) : null}
 
-              {/* Treatment Updates */}
-              {activeFilter === 'all' || activeFilter === 'treatment' ? (
+              {/* Patient Stories */}
+              {activeFilter === 'all' || activeFilter === 'patient' ? (
                 <>
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full mb-2">
-                          Treatment Update
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          FDA Fast-Tracks New Oligodendroglioma Treatment After Promising Results
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          The FDA has granted Fast Track designation to a new treatment that has shown remarkable results in clinical trials, potentially reducing tumor size by up to 60% in some patients.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 10, 2024</span>
-                          <span>Source: FDA News Release</span>
+                  {/* Section Header */}
+                  <div className="border-b border-gray-200 pb-2 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Patient Stories
+                    </h3>
+                  </div>
+                  
+                  {/* Featured Card - Horizontal Layout */}
+                  <Link href="https://www.thesun.co.uk/health/1234567/celebrity-chef-simon-majumdar-oligodendroglioma-battle/" className="block" target="_blank" rel="noopener noreferrer">
+                    <div className="bg-gradient-to-r from-blue-50 to-white p-5 rounded-xl shadow-sm border border-blue-100 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="md:w-2/3">
+                          <div className="flex items-center mb-2">
+                            <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                              Patient Story
+                            </span>
+                            <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full">
+                              NEW
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold text-blue-700 mb-2">
+                            Chef Simon Majumdar's Journey with Oligodendroglioma
+                          </h3>
+                          <p className="text-gray-600 mb-3">
+                            In August 2024, celebrity chef Simon Majumdar shared his battle with oligodendroglioma, detailing his experiences with two brain surgeries, radiation, and chemotherapy. He has partnered with Oligo Nation to raise awareness and funds for research into this rare brain cancer.
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>August 2024</span>
+                            <span className="mx-2">•</span>
+                            <span>The US Sun</span>
+                          </div>
                         </div>
                       </div>
-                      <Link
-                        href="/dashboard/news/treatment-update"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
                     </div>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full mb-2">
-                          Treatment Update
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Breakthrough in Managing Treatment Side Effects
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          A new study has identified effective strategies for managing common side effects of oligodendroglioma treatments, significantly improving quality of life for patients.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 9, 2024</span>
-                          <span>Source: American Society of Clinical Oncology</span>
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard/news/treatment-guidelines"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
-                    </div>
-                  </div>
-                </>
-              ) : null}
-
-              {/* Community News */}
-              {activeFilter === 'all' || activeFilter === 'community' ? (
-                <>
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full mb-2">
-                          Community News
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Virtual Support Group Launches with Focus on Oligodendroglioma Patients
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          A new virtual support group specifically for oligodendroglioma patients has launched, offering weekly meetings with medical experts and peer support.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 8, 2024</span>
-                          <span>Source: Brain Tumor Foundation</span>
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard/news/support-group"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="inline-block px-2 py-1 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full mb-2">
-                          Community News
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Patient Stories: How Early Detection Saved My Life
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          A new series of patient stories highlights the importance of early detection and regular check-ins for oligodendroglioma patients, with inspiring recovery stories.
-                        </p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <span className="mr-4">Posted: March 7, 2024</span>
-                          <span>Source: Patient Advocacy Organization</span>
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard/news/advocacy-day"
-                        className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap ml-4"
-                      >
-                        Read More →
-                      </Link>
-                    </div>
-                  </div>
+                  </Link>
                 </>
               ) : null}
             </div>

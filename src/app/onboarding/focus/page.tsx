@@ -60,7 +60,10 @@ function FocusContent() {
     }
     const option = focusOptions.find(opt => opt.param === selectedFocus);
     if (option) {
-      router.push(option.href);
+      // Store the selected focus in localStorage
+      localStorage.setItem('userFocus', selectedFocus);
+      // Redirect to the dashboard
+      router.push('/dashboard');
     }
   };
 

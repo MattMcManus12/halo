@@ -114,7 +114,7 @@ export default function Navigation() {
           <div className="flex items-center justify-center">
             <Link 
               href={pathname.includes('/dashboard') || pathname.includes('/onboarding') ? '/dashboard' : '/'} 
-              className="text-xl font-bold text-blue-600"
+              className="text-3xl font-bold text-blue-600"
             >
               HALO
             </Link>
